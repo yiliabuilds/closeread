@@ -6,7 +6,7 @@
 
 它不是固定课程，也不是聊天窗口。你带来材料，决定这次要学的段落；本地版使用你自己的 API，把材料整理成可保存、可继续阅读的精读页面。
 
-> v0.1 发布候选，尚未公开上线。作者：[yiliabuilds](https://github.com/yiliabuilds)。
+> v0.1 · 个人语言学习工具。作者：[yiliabuilds](https://github.com/yiliabuilds) · [项目仓库](https://github.com/yiliabuilds/closeread)。
 
 ## 一条清楚的学习路径
 
@@ -48,7 +48,7 @@ python3 -m http.server 4190 --directory docs --bind 127.0.0.1
 
 当前主要支持 macOS；需要 Node.js（本项目以 Node 22+ 为目标）和 Python 3，无额外 npm 依赖。
 
-1. 下载项目并解压，打开 local 文件夹。
+1. 在[项目仓库](https://github.com/yiliabuilds/closeread)点击 **Code → Download ZIP**，解压后打开 local 文件夹。
 2. 双击 启动精读.command；如无法双击，可在终端进入 local 后运行 `python3 start-local.py`。
 3. 打开 http://127.0.0.1:4180 。
 4. 在“我的”配置自己的 DeepSeek 密钥。密钥保存在 macOS 钥匙串，不写入 GitHub 或网页。
@@ -80,4 +80,4 @@ python3 -m http.server 4190 --directory docs --bind 127.0.0.1
 
 ## 发布状态与许可
 
-采用 MIT 许可证，署名 yiliabuilds，见 LICENSE。当前仍为本地发布候选，尚未上传。示例或第三方材料的权利需独立核实；许可证不授权第三方内容。发布前请阅读 PUBLISHING.md。
+采用 MIT 许可证，署名 yiliabuilds，见 [LICENSE](LICENSE)。示例或第三方材料的权利需独立核实；许可证不授权第三方内容。版本功能与限制见 [v0.1 说明](RELEASE_NOTES.md)。
