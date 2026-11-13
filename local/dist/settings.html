@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>我的 · API 设置</title><link rel="stylesheet" href="reading.css"><style>
+main{max-width:760px;margin:auto;padding:24px}input{box-sizing:border-box;width:100%;font:inherit;padding:14px;border:1px solid #9bac9e;border-radius:10px}button{min-height:44px;margin:8px 8px 8px 0}section{margin:24px 0;padding:22px;border:1px solid #cbd4ca;border-radius:16px}#status{white-space:pre-line}#message{min-height:2em} [hidden]{display:none!important}.muted{color:#52675d;font-size:14px}a{overflow-wrap:anywhere}</style></head>
+<body><header class="top"><a href="index.html">← 学习首页</a><a href="intensive.html">我的精读</a></header><main><h1>我的</h1><p>本机个人设置 · 不需要注册账号</p>
+<section><h2>AI 服务</h2><p>服务商：DeepSeek</p><p id="status" role="status">正在读取配置…</p><p class="muted">保存不代表密钥已经通过服务商验证。此页面不调用 AI，也不查询余额。</p>
+<button id="edit" disabled>配置 / 更换密钥</button><button id="remove" disabled>移除密钥</button>
+<form id="form" hidden><label for="key">API Key</label><input id="key" type="password" autocomplete="off" spellcheck="false" autocapitalize="off" required maxlength="512" placeholder="粘贴你的 DeepSeek API Key"><p class="muted">密钥通过本机服务存入 macOS 钥匙串；不会写入网页存储、文章或导出文件。系统可能请求钥匙串授权。</p><button id="save" type="submit">保存到本机钥匙串</button><button id="cancel" type="button">取消</button></form>
+<div id="confirmation" hidden><p>移除后将无法生成新的精读，已保存文章和笔记不受影响。正在进行的请求不会取消。</p><button id="confirm-remove">确认移除</button><button id="keep">保留密钥</button></div>
+<p id="message" role="status" aria-live="polite"></p></section>
+<section><h2>以后怎么使用？</h2><p>配置一次后，再次启动会从钥匙串自动读取。更换或移除立即影响之后的新请求，无需重启；正在生成的文章不受影响。</p><p>余额不足时，请给对应的服务商账户充值，通常无需更换 API Key。充值后手动再次尝试即可。</p><p class="muted">目前仅保存在这台 Mac，不会自动同步到手机。关闭本机服务后，网页不能生成新文章。</p></section>
+</main><script src="settings.js"></script></body></html>
