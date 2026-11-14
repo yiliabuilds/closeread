@@ -1,12 +1,10 @@
-# 精读钥匙 · CloseRead
+<img width="2284" height="1258" alt="image" src="https://github.com/user-attachments/assets/63c5957d-9e20-44ac-bcdd-47f6df04ab8a" /># 精读钥匙 · CloseRead
 
 **把自己的文章，变成可以逐句学习的精读材料。**
 
 读懂翻译，不等于理解一句话如何成立。CloseRead 保留原句，把词语、表达和语法放回句子里解释，再用练习和笔记留下自己的理解。
 
 你可以先用固定示例体验，也可以导入自己的文章在本地生成精读；如果习惯在 Agent 中学习，还可以使用从 CloseRead 精读方法中独立封装出的 Agent Skill。
-
-![CloseRead 精读阅读页：目录、逐句讲解、中文辅助与练习](images/reading-preview.png)
 
 ---
 
