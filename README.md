@@ -1,4 +1,4 @@
-<img width="2284" height="1258" alt="image" src="https://github.com/user-attachments/assets/63c5957d-9e20-44ac-bcdd-47f6df04ab8a" /># 精读钥匙 · CloseRead
+精读钥匙 · CloseRead
 
 **把自己的文章，变成可以逐句学习的精读材料。**
 
