@@ -3,7 +3,7 @@
  const fmt=d=>new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric'}).format(d);
  $('date').textContent=new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',day:'numeric'}).format(now);
  $('lesson-count').textContent='1 篇示例';$('source-count').textContent='浏览器本地';
- $('continue').innerHTML='<p class="muted">v0.1 · 在线展示版</p><h1>读懂一句，再向前一步。</h1><p>用英语理解德语，需要时展开中文辅助。从 Lina 的自我介绍开始，体验逐句讲解、练习和笔记。</p><blockquote class="quote">Ich heiße Lina.<br><small>My name is Lina.</small></blockquote><a class="outline" href="reading.html">开始阅读 →</a><p class="hint">固定教学示例，不调用 AI、不需要密钥。<a href="about.html#local">自己的文章？了解完整本地版 →</a></p>';
+ $('continue').innerHTML='<p class="muted">v0.1.1 · 在线展示版</p><h1>读懂一句，再向前一步。</h1><p>用英语理解德语，需要时展开中文辅助。从 Lina 的自我介绍开始，体验逐句讲解、练习和笔记。</p><blockquote class="quote">Ich heiße Lina.<br><small>My name is Lina.</small></blockquote><a class="outline" href="reading.html">开始阅读 →</a><p class="hint">固定教学示例，不调用 AI、不需要密钥。<a href="about.html#local">自己的文章？了解完整本地版 →</a></p>';
  const monday=new Date(now.getFullYear(),now.getMonth(),now.getDate()-(now.getDay()+6)%7,12),dates=Array.from({length:7},(_,i)=>new Date(monday.getFullYear(),monday.getMonth(),monday.getDate()+i,12));
  const key=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
  $('week-range').textContent=fmt(dates[0])+' — '+fmt(dates[6]);

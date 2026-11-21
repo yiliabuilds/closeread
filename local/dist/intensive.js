@@ -1,6 +1,6 @@
 (() => {
  const style=document.createElement('style');style.textContent='.learning-item{padding:18px 0;border-bottom:1px solid var(--line)}.learning-item:last-child{border-bottom:0}.learning-item h3{margin:8px 0;font-size:19px}.learning-item a{font-size:13px;display:inline-block;padding:6px 0}.lesson-menu a{display:block;padding:9px 0;min-height:44px}.lesson>section{scroll-margin-top:20px}.lesson>section>h2{margin-top:32px;border-top:1px solid var(--line);padding-top:24px}.lesson-menu h2{margin-top:0!important;border:0!important;padding:0!important}.learning-item p{margin:10px 0}.learning-item blockquote{margin:12px 0}.result-text{overflow-wrap:anywhere}';document.head.append(style);
- const $=id=>document.getElementById(id);let current,items=[],position=0;
+ const $=id=>document.getElementById(id);let current,items=[],position=0,readerRemoved=false;
  const say=t=>$('message').textContent=t;
  const node=(tag,text,parent)=>{const el=document.createElement(tag);el.textContent=text;parent.append(el);return el;};
  const params=new URLSearchParams(location.search),lessonId=params.get('lesson');
@@ -59,6 +59,7 @@
   const status=node('p','',importer);status.setAttribute('role','status');
   const preview=node('div','',importer);preview.hidden=true;
   const pasteMode=node('button','或粘贴文本',importer);pasteMode.type='button';
+  const clearImport=node('button','清空本次导入',importer);clearImport.type='button';
   const pasteBox=node('div','',importer);pasteBox.hidden=true;
   const caption=node('label','粘贴原文',pasteBox);
   const editor=node('textarea','',pasteBox);editor.id='paste-source';caption.htmlFor=editor.id;editor.rows=7;
@@ -67,6 +68,7 @@
   $('text').hidden=true;$('text').required=false;$('text').previousElementSibling.hidden=true;
   $('submit').textContent='生成所选内容的精读';$('submit').disabled=true;
   let selections=[];
+  clearImport.onclick=async()=>{if($('submit').dataset.busy||file.disabled){status.textContent='请等待本次提取或生成结束后再清空。';return;}if(!await CloseReadData.confirmAction('清空本次导入文字与选段？已保存文章和原始 Word 不受影响。'))return;editor.value='';selections=[];choices.replaceChildren();preview.hidden=true;pasteBox.hidden=true;$('text').value='';$('submit').disabled=true;sessionStorage.removeItem('home-import-draft');status.textContent='已清空本次导入，原始文件未改动。';};
   const selected=()=>selections.filter(x=>x.box.checked).map(x=>x.field.value.trim()).join('\n\n');selectedSource=selected;
   const update=()=>{const n=selected().length;count.textContent=`已选 ${selections.filter(x=>x.box.checked).length} 段 · ${n} 字符 · 每次精读 10–3000 字符`;if(!$('submit').dataset.busy)$('submit').disabled=n<10||n>3000;};
   const rebuild=()=>{choices.replaceChildren();selections=[];editor.value.split(/\n+/).map(s=>s.trim()).filter(Boolean).forEach((text,i)=>{const card=node('section','',choices);card.className='segment-card';const row=node('label','',card),box=node('input','',row);box.type='checkbox';box.checked=editor.value.length<=3000;row.append(document.createTextNode(`第 ${i+1} 段`));const content=node('p',text,card),edit=node('button','编辑本段',card);edit.type='button';const field=node('textarea','',card);field.value=text;field.hidden=true;field.setAttribute('aria-label',`第 ${i+1} 段`);edit.onclick=()=>{field.hidden=!field.hidden;content.hidden=!field.hidden;edit.textContent=field.hidden?'编辑本段':'完成编辑';};field.oninput=()=>{content.textContent=field.value;update();};box.onchange=update;selections.push({box,field});});pasteBox.hidden=true;update();};
@@ -78,7 +80,7 @@
  node('p','按句阅读，每句话下展开讲解。已保存文章在新标签页打开，不重复调用 AI。',$('generate')).className='hint';
  async function api(url,options){const r=await fetch(url,options);if(!r.headers.get('content-type')?.includes('application/json'))throw Error('请通过本机服务 http://127.0.0.1:4180/intensive.html 打开。');const x=await r.json();if(!r.ok)throw Error(x.error||'请求失败');return x;}
  const localKey=()=>`intensive-practice-${current.id}`;
- function persist(){if(!current)return;try{localStorage.setItem(localKey(),JSON.stringify({text:$('practice').value,position}));$('practice-status').textContent='练习与位置已保存在当前浏览器';}catch{$('practice-status').textContent='浏览器保存失败，请立即导出备份。';}}
+ function persist(){if(!current||readerRemoved)return;try{const removed=localStorage.getItem(CloseReadData.tombstone(current.id));if(removed==='trash'||removed==='purge')return;localStorage.setItem(localKey(),JSON.stringify({text:$('practice').value,position}));$('practice-status').textContent='练习与位置已保存在当前浏览器';}catch{$('practice-status').textContent='浏览器保存失败，请立即导出备份。';}}
  function splitExplanation(text,lang){
   // Protect punctuation before BOTH manual splitting and Intl sentence segmentation.
   const saved=[];let prefix='\uE000';while(text.includes(prefix))prefix+='\uE000';
@@ -160,6 +162,29 @@
   [...$('explanation').children].slice(1).forEach(part=>{const a=node('a',part.querySelector('h2').textContent,menu);a.href='#'+part.id;});
  }
  function show(record){current=record;$('result').hidden=false;$('title').textContent=record.lesson.title;$('original').textContent=record.text;$('explanation').replaceChildren();$('explanation').lang='zh-CN';renderLesson(record.lesson);position=0;$('practice').value='';$('practice-status').textContent='';try{const p=JSON.parse(localStorage.getItem(localKey())||'{}');$('practice').value=typeof p.text==='string'?p.text:'';position=Number.isInteger(p.position)?p.position:0;}catch{$('practice-status').textContent='上次练习无法读取，请勿清理浏览器数据。';}$('result').scrollIntoView();}
+ let managing=false,removing=false,selectedArticles=new Set();
+ function updateManagement(){
+  if(!$('library-management'))return;
+  $('manage-articles').hidden=managing;$('selection-tools').hidden=!managing;
+  $('selection-count').textContent=`已选 ${selectedArticles.size} 篇`;
+  $('trash-selected').disabled=removing||!selectedArticles.size;
+  for(const id of ['manage-articles','cancel-management','select-visible','refresh','article-search'])if($(id))$(id).disabled=removing;
+ }
+ async function trashArticles(records){
+  if(removing||!records.length)return;removing=true;renderList();
+  let count=0,error='';
+  try{
+   const titles=records.slice(0,5).map(r=>'· '+r.lesson.title).join('\n');
+   if(!await CloseReadData.confirmAction(`将这 ${records.length} 篇文章移入回收站？\n${titles}${records.length>5?'\n…':''}\n笔记保留，可恢复；不会删除原始 Word。`))return;
+   for(const record of records){await CloseReadData.article(record.id,'trash');selectedArticles.delete(record.id);count++;}
+  }catch(e){error=e.message;}
+  finally{
+   try{await list();}catch(e){error=error||e.message;}
+   removing=false;renderList();
+   if(error)removeStatus.textContent=`已确认移入 ${count} 篇，其余操作已停止：${error}。请刷新核对，不会自动重试。`;
+   else if(count)removeStatus.textContent=`已将 ${count} 篇文章移入回收站，可在“回收站与备份”恢复。`;
+  }
+ }
  function renderList(){
   const query=($('article-search')?.value||'').normalize('NFC').toLocaleLowerCase().trim();
   let found=items.filter(r=>(r.lesson.title+' '+r.text).normalize('NFC').toLocaleLowerCase().includes(query));
@@ -167,7 +192,16 @@
   if($('resume-reading')){let last;try{last=localStorage.getItem('intensive-last-opened');}catch{}const record=items.find(r=>r.id===last);$('resume-reading').hidden=!record;if(record)$('resume-reading').href='intensive.html?lesson='+encodeURIComponent(record.id);}
   $('saved').replaceChildren();
   if(!found.length)node('p',query?'没有匹配的文章，请换个关键词。':'还没有保存的精读，点击「新建精读」开始。',$('saved'));
-  found.forEach(item=>readingLink(item,$('saved')));
+  const existing=new Set(items.map(r=>r.id));for(const id of selectedArticles)if(!existing.has(id))selectedArticles.delete(id);
+  found.forEach(item=>{
+   const row=node('div','',$('saved'));row.className='article-row';
+   if(managing){const label=node('label','',row);label.className='article-select';const box=node('input','',label);box.type='checkbox';box.setAttribute('aria-label','选择 '+item.lesson.title);box.checked=selectedArticles.has(item.id);box.disabled=removing;box.onchange=()=>{box.checked?selectedArticles.add(item.id):selectedArticles.delete(item.id);row.classList.toggle('is-selected',box.checked);updateManagement();};row.classList.toggle('is-selected',box.checked);}
+   const link=readingLink(item,row);link.removeAttribute('style');link.className='article-link';
+   if(!managing){const remove=node('button','',row);remove.className='article-trash';remove.type='button';remove.title='移入回收站';remove.setAttribute('aria-label','将 '+item.lesson.title+' 移入回收站');remove.disabled=removing;
+    remove.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7"/></svg>';
+    remove.onclick=()=>trashArticles([item]);}
+  });
+  updateManagement();
   if($('article-count'))$('article-count').textContent=query?`找到 ${found.length} 篇 / 共 ${items.length} 篇`:`共 ${items.length} 篇`;
  }
  async function list(){const x=await api('/api/lessons');items=x.items;renderList();}
@@ -211,6 +245,8 @@
   let expanded=!matchMedia('(max-width:760px)').matches;
   const setOutline=()=>{workspace.classList.toggle('outline-closed',!expanded);sidebar.hidden=!expanded;toggle.textContent=expanded?'收起目录':'展开目录';toggle.setAttribute('aria-expanded',String(expanded));};toggle.onclick=()=>{expanded=!expanded;setOutline();};setOutline();
   const note=node('button','笔记 ↓',top);note.onclick=()=>$('practice').focus();
+  const reset=node('button','重置阅读进度',top);reset.onclick=async()=>{if(!current||readerRemoved)return;if(!await CloseReadData.confirmAction('只回到文章开头，笔记保持不变？'))return;position=0;$('explanation').firstElementChild?.scrollIntoView();persist();};
+  window.addEventListener('storage',e=>{if(current&&e.key===CloseReadData.tombstone(current.id)){readerRemoved=true;$('practice').disabled=true;status.textContent='这篇文章的数据已在另一页面更改。请回文章库或回收站查看；本页已停止自动保存，避免写回旧内容。';}});
   $('result').prepend($('title'));
   const notice=$('result').querySelector(':scope > .notice');if(notice)$('result').append(notice);
   const originalShow=show;
@@ -218,7 +254,7 @@
   const status=node('p','正在读取已保存的精读…',main);status.setAttribute('role','status');main.insertBefore(status,$('result'));
   if(params.get('sample')==='pharmacy'){show(pharmacySample);document.title=pharmacySample.lesson.title;status.textContent='人工编写示范 · 不调用 API';}
   else if(!/^[a-f0-9]{64}$/.test(lessonId||'')){status.textContent='文章地址无效，请返回文章库重新打开。';}
-  else api('/api/lessons').then(x=>{const record=x.items.find(r=>r.id===lessonId);if(!record){status.textContent='未找到这篇文章，请返回文章库。已保存的其他文章不受影响。';return;}show(record);document.title=record.lesson.title;status.textContent='已读取保存结果 · 不调用 AI · 本篇笔记独立保存';}).catch(()=>{status.textContent='暂时无法读取文章，请确认本机服务已启动，然后刷新。本页不会自动调用 AI。';});
+  else api('/api/lessons').then(x=>{const record=x.items.find(r=>r.id===lessonId);if(!record){status.textContent='未找到这篇文章，可能已移入回收站。请返回文章库查看。';return;}localStorage.removeItem(CloseReadData.tombstone(record.id));show(record);document.title=record.lesson.title;status.textContent='已读取保存结果 · 不调用 AI · 本篇笔记独立保存';}).catch(()=>{status.textContent='暂时无法读取文章，请确认本机服务已启动，然后刷新。本页不会自动调用 AI。';});
   return;
  }
  const main=document.querySelector('main'),heading=main.querySelector('h1'),entry=document.querySelector('.entry'),savedSection=document.querySelector('.saved');
@@ -229,12 +265,23 @@
  const settingsLink=node('a','我的 · API 设置',document.querySelector('.top'));settingsLink.href='settings.html';
  heading.textContent=pageView==='home'?'从一篇文章，开始精读。':pageView==='create'?'新建精读':'我的精读';document.title=heading.textContent;
  const actions=node('div','',main);actions.className='page-actions';heading.after(actions);
+ const manage=node('a','回收站与备份',actions);manage.href='data.html';
+ const removeStatus=node('p','',savedSection);removeStatus.setAttribute('role','status');savedSection.insertBefore(removeStatus,$('saved'));
  const add=node('a','＋ 新建精读',actions);add.href='intensive.html?view=create';add.className='main-action';
  entry.hidden=pageView!=='create';savedSection.hidden=pageView==='create';
  if(pageView==='create'){add.hidden=true;linaEntry.hidden=true;sampleEntry.hidden=true;}
  if(pageView==='library'){
+  document.body.classList.add('library-theme');
+  node('style',`.article-row{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;background:white;margin:10px 0;padding:6px 10px}.article-row.is-selected{background:#edf3ed;border-color:#8da594}.article-link{flex:1;min-width:0;padding:14px 6px;text-decoration:none;overflow-wrap:anywhere}.saved .article-trash{display:flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;margin:0;padding:0;border:0;background:transparent;color:var(--muted)}.article-trash:hover{background:#f5e9e5;color:#923c29}.article-select{display:flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;cursor:pointer}.article-select input{width:18px;height:18px;accent-color:var(--ink)}#library-management,#selection-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}#library-management button{width:auto;min-height:44px;padding:8px 14px;margin:0;font-size:14px}#selection-count{font-size:14px}#trash-selected{background:var(--ink);color:var(--paper)}@media(hover:hover) and (pointer:fine){.article-trash{opacity:0}.article-row:hover .article-trash,.article-row:focus-within .article-trash{opacity:1}}`,document.head);
+  const management=node('div','',savedSection);management.id='library-management';savedSection.insertBefore(management,$('saved'));
+  const manageButton=node('button','管理',management);manageButton.id='manage-articles';manageButton.type='button';manageButton.onclick=()=>{managing=true;selectedArticles.clear();renderList();};
+  const tools=node('div','',management);tools.id='selection-tools';tools.hidden=true;
+  node('span','已选 0 篇',tools).id='selection-count';
+  const select=node('button','全选当前结果',tools);select.id='select-visible';select.onclick=()=>{for(const box of $('saved').querySelectorAll('input[type=checkbox]'))if(!box.checked){box.checked=true;box.onchange();}};
+  const trash=node('button','移入回收站',tools);trash.id='trash-selected';trash.disabled=true;trash.onclick=()=>trashArticles(items.filter(r=>selectedArticles.has(r.id)));
+  const cancel=node('button','取消',tools);cancel.id='cancel-management';cancel.onclick=()=>{managing=false;selectedArticles.clear();renderList();};
   const label=node('label','搜索标题或原文',savedSection),search=node('input','',savedSection);search.type='search';search.id='article-search';search.className='library-search';search.placeholder='搜索标题或原文…';label.htmlFor=search.id;
-  savedSection.insertBefore(label,$('refresh'));savedSection.insertBefore(search,$('refresh'));search.oninput=renderList;
+  savedSection.insertBefore(label,$('refresh'));savedSection.insertBefore(search,$('refresh'));search.oninput=()=>{selectedArticles.clear();renderList();};
   const count=node('span','',savedSection);count.id='article-count';savedSection.insertBefore(count,$('saved'));
  }
  if(pageView==='home'){
