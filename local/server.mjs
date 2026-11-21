@@ -164,7 +164,7 @@ export function createApp({key=process.env.DEEPSEEK_API_KEY,keyStore=null,keySto
   if(req.method!=='GET')return send(res,405,{error:'不支持此操作'});
   // Only explicitly listed public assets are served, never keys or saved sources.
   const name=url.pathname==='/'?'index.html':url.pathname.slice(1);
-  if(!['index.html','workspace.html','home.js','home.css','core.js','reading.html','reading.js','reading.css','reading-entry.js','intensive.html','intensive.js','settings.html','settings.js','data.html','data.js','data-client.js'].includes(name))return send(res,404,{error:'页面不存在'});
+  if(!['index.html','workspace.html','home.js','home.css','core.js','reading.html','reading.js','reading.css','reading-entry.js','intensive.html','intensive.js','settings.html','settings.js','data.html','data.js','data-client.js','theme.css'].includes(name))return send(res,404,{error:'页面不存在'});
   try{const content=await readFile(path.join(root,'dist',name));res.writeHead(200,{'Content-Type':name.endsWith('.js')?'text/javascript; charset=utf-8':name.endsWith('.css')?'text/css; charset=utf-8':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'});res.end(content);}catch{send(res,404,{error:'页面不存在'});}
  });
 }

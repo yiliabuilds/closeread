@@ -1,0 +1,47 @@
+/* Shared visual language for every local CloseRead page. */
+:root{--paper:#f6f7f9;--ink:#284b72;--muted:#64748b;--line:#d4dde7;--card:#fff;--sage:#e3ebf4;--mint:#edf2f7;--accent:#486e98;--sun:#e3ebf4;--shadow:none}
+body{background:var(--paper);color:#263b53;font-family:"PingFang SC",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select,textarea{font-family:inherit;accent-color:#315780}
+a{color:#315780}a:hover{color:#193b62}
+h1,h2,h3{color:#284b72;font-weight:500;letter-spacing:0}
+button,textarea,input,select{border-radius:3px}
+button:hover{background:#eaf0f7}
+:is(a,button,input,textarea,select,summary):focus-visible{outline:2px solid #6e8eaf;outline-offset:3px}
+.top,.reader-top{background:var(--paper)}
+.source{background:#edf2f7;border-radius:3px}
+.lesson{background:#fff;border-radius:3px;border-color:var(--line)}
+details{background:#f1f4f8;border-color:var(--line);border-radius:3px}
+blockquote{background:#f1f4f8;border-left-color:#aabed1;color:#263b53}
+code{background:#edf2f7;border-radius:2px}
+.notice{border-left-color:#aabed1}
+textarea{border-color:#b4c3d2;background:#fff}
+.page-actions a{border-radius:3px!important}
+.page-actions a.main-action,#trash-selected{background:#315780!important;color:#fff!important}
+.article-row.is-selected{background:#eaf0f7!important;border-color:#b4c3d2!important}
+.article-select input{accent-color:#315780!important}
+/* Settings, backup and confirmation dialogs. */
+body.settings-page section,body.data-page main>section{border-color:var(--line);border-radius:3px;background:transparent}
+body.settings-page input{border-color:#b4c3d2;border-radius:3px}
+body.settings-page .muted{color:var(--muted)}
+dialog{background:var(--paper)!important;color:#263b53!important;border:1px solid #b4c3d2!important;border-radius:4px!important}
+dialog button{border-radius:3px!important}
+/* Legacy planner shares colours without changing scheduling behaviour. */
+.planner-page .brand{font-weight:500;letter-spacing:0}
+.planner-page .nav button,.planner-page .primary,.planner-page .secondary,.planner-page .ghost,.planner-page .task-more{border-radius:3px}
+.planner-page .primary,.planner-page .nav button.active{background:#315780;color:#fff;font-weight:500}
+.planner-page .secondary{background:#e3ebf4;font-weight:500}
+.planner-page .stat,.planner-page .card,.planner-page .day,.planner-page .review-card,.planner-page .modal{border-radius:4px;box-shadow:none}
+.planner-page .today-grid>.card:first-child{border-color:#b4c3d2;box-shadow:none}
+.planner-page .pill,.planner-page .pill.review,.planner-page .pill.output,.planner-page .ghost,.planner-page .task-more{background:#edf2f7}
+.planner-page .review-card{background:#edf2f7;border-color:#c4d1e0}
+.planner-page .notice{background:#f1f4f8;border-color:#c4d1e0;border-radius:3px}
+.planner-page .progress,.planner-page .bar{background:#e5ebf2}
+.planner-page .mini-task.output,.planner-page .mini-task.review{background:#e3ebf4}
+.planner-page .check{border-color:#b4c3d2}
+.planner-page .focus-option:has(input:checked){border-color:#8ca6c0}
+.planner-page .bottom-nav{background:var(--paper)}
+.planner-page .nav .nav-label{color:#64748b}
+.planner-page .modal-backdrop{background:rgba(25,42,63,.35)}
+.planner-page .modal-foot{background:var(--card)}
+.planner-page .day.today{background:#eaf0f7;border-color:#8ca6c0}
+.error{color:#9a4942}
