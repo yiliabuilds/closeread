@@ -10,6 +10,14 @@
 
 在线体验：[CloseRead 展示版](https://yiliabuilds.github.io/closeread/)
 
+## Mac 安装版（v0.2.0）
+
+[前往 Releases 下载安装包](https://github.com/yiliabuilds/closeread/releases) · Apple Silicon（M 系列），macOS 15+。
+
+拖入「应用程序」后双击启动，无需另装 Node.js 或 Python。界面仍在浏览器中打开，AI 功能使用自己的 DeepSeek API。首次启动可复制原项目文章；笔记和生词需沿用原来的浏览器与本地地址。关闭网页不停止服务，请退出 CloseRead 应用。
+
+安装包尚未经过 Apple Developer ID 签名或公证；目前主要在作者自己的 Mac 上使用。完整步骤和限制见 Release 说明。源码运行方式继续保留。
+
 ## 一条清楚的学习路径
 
 导入 Word 或粘贴文本 → 选择段落 → 分批生成 → 按句阅读 → 练习与笔记 → 下次继续。

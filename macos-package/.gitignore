@@ -1,0 +1,6 @@
+output/
+*.dmg
+latest-build.txt
+staging-path.txt
+CloseRead.iconset/
+__pycache__/
