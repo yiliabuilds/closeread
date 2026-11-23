@@ -19,7 +19,7 @@
  function renderLinaSentence(data,parent,number='②',language='de'){
   const inline=(tokens,p)=>tokens.forEach(t=>{if(typeof t==='string')p.append(document.createTextNode(t));else node(t.strong?'strong':'code',t.strong||t.code,p);});
   const article=node('article','',parent);article.lang='en';article.className='lesson';
-  node('h3',number+' '+data.quote,article).lang=language;
+  const originalHeading=node('h3',number+' '+data.quote,article);originalHeading.lang=language;originalHeading.dataset.lookupSource=data.quote;
   const meaning=node('p','',article);node('strong','Meaning: ',meaning);meaning.append(document.createTextNode(data.meaning));
   if(data.parts.length){const build=node('p','',article);node('strong','Build it: ',build);data.parts.forEach(([word,gloss],i)=>{if(i)build.append(document.createTextNode(' + '));node('code',word,build).lang=language;build.append(document.createTextNode(' ('+gloss+')'));});}
   if(data.partsWarning)node('p','Build it contains a form that needs checking against the original.',article).className='notice';
@@ -80,7 +80,7 @@
  node('p','按句阅读，每句话下展开讲解。已保存文章在新标签页打开，不重复调用 AI。',$('generate')).className='hint';
  async function api(url,options){const r=await fetch(url,options);if(!r.headers.get('content-type')?.includes('application/json'))throw Error('请通过本机服务 http://127.0.0.1:4180/intensive.html 打开。');const x=await r.json();if(!r.ok)throw Error(x.error||'请求失败');return x;}
  const localKey=()=>`intensive-practice-${current.id}`;
- function persist(){if(!current||readerRemoved)return;try{const removed=localStorage.getItem(CloseReadData.tombstone(current.id));if(removed==='trash'||removed==='purge')return;localStorage.setItem(localKey(),JSON.stringify({text:$('practice').value,position}));$('practice-status').textContent='练习与位置已保存在当前浏览器';}catch{$('practice-status').textContent='浏览器保存失败，请立即导出备份。';}}
+ function persist(writeNote=false){if(!current||readerRemoved)return;try{const removed=localStorage.getItem(CloseReadData.tombstone(current.id));if(removed==='trash'||removed==='purge')return;const latest=JSON.parse(localStorage.getItem(localKey())||'{}');if(latest.text!==undefined&&typeof latest.text!=='string')throw Error('笔记格式异常');const text=writeNote?$('practice').value:(latest.text??$('practice').value);localStorage.setItem(localKey(),JSON.stringify({...latest,text,position}));if(!writeNote)$('practice').value=text;$('practice-status').textContent='练习与位置已保存在当前浏览器';}catch{$('practice-status').textContent='浏览器保存失败，请立即导出备份。';}}
  function splitExplanation(text,lang){
   // Protect punctuation before BOTH manual splitting and Intl sentence segmentation.
   const saved=[];let prefix='\uE000';while(text.includes(prefix))prefix+='\uE000';
@@ -161,7 +161,7 @@
   if(lesson.selfCheck)block('Check what you can do',lesson.selfCheck);
   [...$('explanation').children].slice(1).forEach(part=>{const a=node('a',part.querySelector('h2').textContent,menu);a.href='#'+part.id;});
  }
- function show(record){current=record;$('result').hidden=false;$('title').textContent=record.lesson.title;$('original').textContent=record.text;$('explanation').replaceChildren();$('explanation').lang='zh-CN';renderLesson(record.lesson);position=0;$('practice').value='';$('practice-status').textContent='';try{const p=JSON.parse(localStorage.getItem(localKey())||'{}');$('practice').value=typeof p.text==='string'?p.text:'';position=Number.isInteger(p.position)?p.position:0;}catch{$('practice-status').textContent='上次练习无法读取，请勿清理浏览器数据。';}$('result').scrollIntoView();}
+ function show(record){current=record;window.CloseReadLookupRecord=record;$('result').hidden=false;$('title').textContent=record.lesson.title;$('original').textContent=record.text;$('explanation').replaceChildren();$('explanation').lang='zh-CN';renderLesson(record.lesson);position=0;$('practice').value='';$('practice-status').textContent='';try{const p=JSON.parse(localStorage.getItem(localKey())||'{}');$('practice').value=typeof p.text==='string'?p.text:'';position=Number.isInteger(p.position)?p.position:0;}catch{$('practice-status').textContent='上次练习无法读取，请勿清理浏览器数据。';}$('result').scrollIntoView();}
  let managing=false,removing=false,selectedArticles=new Set();
  function updateManagement(){
   if(!$('library-management'))return;
@@ -231,7 +231,8 @@
  $('generate').onsubmit=e=>{e.preventDefault();generateReading(selectedSource?selectedSource():$('text').value,$('language').value);};
  resumeJob.onclick=()=>{try{const request=JSON.parse(localStorage.getItem(pendingKey));if(request&&typeof request.text==='string')generateReading(request.text,request.language);}catch{say('未完成记录无法读取，请重新选择原文；服务端已成功的批次仍会复用。');}};
  updateResume();
- $('refresh').onclick=()=>list().catch(e=>say(e.message));$('practice').oninput=persist;
+ $('refresh').onclick=()=>list().catch(e=>say(e.message));$('practice').oninput=()=>persist(true);
+ window.addEventListener('storage',e=>{if(current&&e.key===localKey()){try{const latest=JSON.parse(localStorage.getItem(localKey())||'{}');if(typeof latest.text==='string'){$('practice').value=latest.text;$('practice-status').textContent='已同步其他页面的笔记';}}catch{$('practice-status').textContent='笔记同步失败，请保留当前内容并导出。';}}});
  $('continue').onclick=()=>{const sections=$('explanation').children;sections[Math.min(Math.max(0,position),sections.length-1)]?.scrollIntoView();};
  window.addEventListener('scroll',()=>{if(!current)return;const sections=[...$('explanation').children].filter(el=>el.getBoundingClientRect().top<100);if(sections.length){const next=Number(sections.at(-1).dataset.part);if(next!==position){position=next;persist();}}},{passive:true});
  $('export').onclick=()=>{if(!current)return;const blob=new Blob([JSON.stringify({...current,practice:$('practice').value,position},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='精读-'+current.id.slice(0,8)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
@@ -265,7 +266,7 @@
  const settingsLink=node('a','我的 · API 设置',document.querySelector('.top'));settingsLink.href='settings.html';
  heading.textContent=pageView==='home'?'从一篇文章，开始精读。':pageView==='create'?'新建精读':'我的精读';document.title=heading.textContent;
  const actions=node('div','',main);actions.className='page-actions';heading.after(actions);
- const manage=node('a','回收站与备份',actions);manage.href='data.html';
+ const manage=node('a','回收站与备份',actions);manage.href='data.html';const vocabularyLink=node('a','生词与笔记',actions);vocabularyLink.href='vocabulary.html';
  const removeStatus=node('p','',savedSection);removeStatus.setAttribute('role','status');savedSection.insertBefore(removeStatus,$('saved'));
  const add=node('a','＋ 新建精读',actions);add.href='intensive.html?view=create';add.className='main-action';
  entry.hidden=pageView!=='create';savedSection.hidden=pageView==='create';

@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {lookupWord,validateLookup} from './word-lookup.mjs';
 import {readFile,writeFile,mkdir,readdir} from 'node:fs/promises';
 import {createHash,randomBytes} from 'node:crypto';
 import {createKeyStore} from './key-store.mjs';
@@ -54,6 +55,7 @@ export function validateLesson(x,text){
 }
 export function createApp({key=process.env.DEEPSEEK_API_KEY,keyStore=null,keyStoreError='',model='deepseek-flash',fetcher=fetch,dataDir=path.join(root,'.local-data')}={}){
  let busy=false;
+ let lookingUp=false;
  let changingKey=false;
  let managingData=false;
  let generationRequests=0;
@@ -110,6 +112,18 @@ export function createApp({key=process.env.DEEPSEEK_API_KEY,keyStore=null,keySto
       return send(res,404,{error:'接口不存在'});
      }finally{managingData=false;}
     }
+    if(req.method==='POST'&&url.pathname==='/api/lookup'){
+     if(req.headers['x-settings-token']!==settingsToken)return send(res,403,{error:'页面已过期，请刷新。'});
+     if(lookingUp||busy)return send(res,409,{error:'已有查询或生成正在进行，请稍候。'});
+     if(!key)return send(res,400,{error:'请先在“我的”配置 API 密钥。'});
+     if(req.headers['content-type']!=='application/json')return send(res,415,{error:'需要 JSON 请求'});
+     lookingUp=true;
+     try{
+      let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>16000)return send(res,413,{error:'选中文字过长。'});}
+      let input;try{input=validateLookup(JSON.parse(raw));}catch(e){return send(res,400,{error:e.message});}
+      return send(res,200,await lookupWord(input,{key,model,fetcher}));
+     }finally{lookingUp=false;}
+    }
     if(req.method==='POST'&&url.pathname==='/api/import-docx'){
      if(req.headers['content-type']!=='application/octet-stream')return send(res,415,{error:'请选择 DOCX 文件'});
      const chunks=[];let size=0;
@@ -164,7 +178,7 @@ export function createApp({key=process.env.DEEPSEEK_API_KEY,keyStore=null,keySto
   if(req.method!=='GET')return send(res,405,{error:'不支持此操作'});
   // Only explicitly listed public assets are served, never keys or saved sources.
   const name=url.pathname==='/'?'index.html':url.pathname.slice(1);
-  if(!['index.html','workspace.html','home.js','home.css','core.js','reading.html','reading.js','reading.css','reading-entry.js','intensive.html','intensive.js','settings.html','settings.js','data.html','data.js','data-client.js','theme.css'].includes(name))return send(res,404,{error:'页面不存在'});
+  if(!['index.html','workspace.html','home.js','home.css','core.js','reading.html','reading.js','reading.css','reading-entry.js','intensive.html','intensive.js','settings.html','settings.js','data.html','data.js','data-client.js','word-lookup.js','theme.css','vocabulary.html','vocabulary.js','vocabulary-store.js'].includes(name))return send(res,404,{error:'页面不存在'});
   try{const content=await readFile(path.join(root,'dist',name));res.writeHead(200,{'Content-Type':name.endsWith('.js')?'text/javascript; charset=utf-8':name.endsWith('.css')?'text/css; charset=utf-8':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'});res.end(content);}catch{send(res,404,{error:'页面不存在'});}
  });
 }

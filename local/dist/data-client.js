@@ -1,7 +1,7 @@
 // Shared only by local pages. Never collects API settings or arbitrary storage.
 window.CloseReadData=(()=>{
  const keys=new Set(['deutsch-os-v1','deutsch-os-reading-lina-v1','intensive-last-opened']);
- const allowed=k=>keys.has(k)||/^intensive-practice-[a-f0-9]{64}$/.test(k);
+ const allowed=k=>keys.has(k)||/^closeread-vocabulary-[a-f0-9]{64}$/.test(k)||/^intensive-practice-[a-f0-9]{64}$/.test(k);
  const tombstone=id=>'closeread-removed-'+id;
  function confirmAction(message){return new Promise(resolve=>{
   const previous=document.activeElement,dialog=document.createElement('dialog');dialog.style.cssText='max-width:480px;width:calc(100% - 64px);padding:24px;border:1px solid #ccc;border-radius:14px;background:#f6f3ed;color:#17322f';
@@ -23,6 +23,7 @@ window.CloseReadData=(()=>{
    if(k==='intensive-last-opened'){if(!/^[a-f0-9]{64}$/.test(v))throw Error('阅读位置编号无效');continue;}
    const x=JSON.parse(v);if(!x||typeof x!=='object'||Array.isArray(x))throw Error('浏览器数据格式无效');
    if(k.startsWith('intensive-practice-')&&(typeof x.text!=='string'||!Number.isInteger(x.position)||x.position<0))throw Error('笔记数据无效');
+   if(k.startsWith('closeread-vocabulary-')&&(!Array.isArray(x.words)||x.words.length>10000||x.words.some(w=>!w||['word','context','language','lemma','meaning','explanation','chinese','createdAt'].some(f=>typeof w[f]!=='string'||w[f].length>3000))))throw Error('生词备份格式无效');
    if(k==='deutsch-os-v1'){
     for(const name of ['materials','tasks','notes','reviews'])if(!Array.isArray(x[name]))throw Error('计划备份缺少字段');
     if(x.coreVersion===1)for(const name of ['sources','sessions','artifacts'])if(!Array.isArray(x[name]))throw Error('学习记录备份缺少字段');
@@ -34,7 +35,7 @@ window.CloseReadData=(()=>{
  async function article(id,action){
   await request('article',{id,action});
   localStorage.setItem(tombstone(id),action==='restore'?'restored':action);
-  if(action==='purge')localStorage.removeItem('intensive-practice-'+id);
+  if(action==='purge'){localStorage.removeItem('intensive-practice-'+id);localStorage.removeItem('closeread-vocabulary-'+id);}
   if(action!=='restore'&&localStorage.getItem('intensive-last-opened')===id)localStorage.removeItem('intensive-last-opened');
  }
  return {request,snapshot,validateBrowser,download,article,tombstone,confirmAction};
