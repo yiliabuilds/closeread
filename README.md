@@ -2,13 +2,21 @@
 
 **把自己的文章，变成可以逐句学习的精读材料。**
 
-读懂翻译，不等于理解一句话如何成立。CloseRead 从真实的自学需求出发：保留原句，把词语、表达和语法放回句子里解释，再用小练习和笔记留下自己的理解。
+读懂翻译，不等于理解一句话如何成立。CloseRead 保留原句，把词语、表达和语法放回句子里解释，再用练习和笔记留下自己的理解。
 
-它不是固定课程，也不是聊天窗口。你带来材料，决定这次要学的段落；本地版使用你自己的 API，把材料整理成可保存、可继续阅读的精读页面。
+你可以先用固定示例体验，也可以导入自己的文章在本地生成精读；如果习惯在 Agent 中学习，还可以使用从 CloseRead 精读方法中独立封装出的 Agent Skill。
 
-> v0.2 · 个人语言学习工具。作者：[yiliabuilds](https://github.com/yiliabuilds) · [项目仓库](https://github.com/yiliabuilds/closeread)。
+---
 
-在线体验：[CloseRead 展示版](https://yiliabuilds.github.io/closeread/)
+## 选择使用方式
+
+| 我想…… | 使用方式 | 入口 |
+|---|---|---|
+| 先看看精读页面是什么样 | **在线展示版** | [直接在线体验](https://yiliabuilds.github.io/closeread/) |
+| 用自己的文章生成、保存精读 | **本地完整版** | [Mac 安装包](https://github.com/yiliabuilds/closeread/releases) · [源码运行步骤](#运行本地完整版) |
+| 在 Agent 对话中分析英语文章 | **Agent Skill** | [查看安装与提问示例](#agent-skill) |
+
+这三种方式属于同一个项目。**Agent Skill 是新增的使用形态，不取代原有网页或本地应用。**
 
 ## Mac 安装版（v0.2.0）
 
@@ -39,14 +47,16 @@
 
 展示版提供固定的 Lina 示例、练习笔记与学习计划，不调用付费模型，适合先了解阅读方式。完整生成能力需要本地运行，目前主要支持 macOS。
 
-## 两种使用方式
+## 三种使用方式
 
-| | 在线展示版（docs） | 本地完整版（local） |
-|---|---|---|
-| Lina 示例、中文辅助、练习笔记 | 支持 | 支持 |
-| 学习计划与外部资源链接 | 支持 | 支持 |
-| Word / 粘贴文章、AI 精读 | 不提供 | 支持，使用自己的 API |
-| 账户 / 云同步 | 无 | 无 |
+| | 在线展示版 `docs/` | 本地完整版 `local/` | Agent Skill `skills/close-reading/` |
+|---|---|---|---|
+| **主要用途** | 体验固定示例的阅读方式 | 导入、生成、保存自己的精读 | 在支持 Skill 的 Agent 中精读所提供的文本 |
+| **自己的材料** | 不提供导入生成 | 粘贴文本或导入 `.docx` | 向宿主 Agent 提供文本；能否直接读文件取决于宿主 |
+| **AI 分析** | 固定内容，不实时调用模型 | 使用自己的 DeepSeek API | 由宿主 Agent 执行，不使用本地版的 API 设置 |
+| **笔记与进度** | 保存在当前浏览器 | 保存在当前浏览器 | Skill 不自带文章库或阅读位置保存 |
+| **学习计划** | 有 | 有 | 不属于 Skill 功能 |
+| **语言范围** | 现有固定示例 | 主要在德语初学场景验证 | v0.1 的完整语言模块为 English |
 
 ### 体验展示版
 
@@ -70,6 +80,97 @@ python3 -m http.server 4190 --directory docs --bind 127.0.0.1
 
 关闭启动程序会停止服务。端口被占用时先关闭旧实例；请勿将该单用户本地服务直接暴露到公网。
 
+### Agent Skill
+
+CloseRead Agent Skill 是从原有精读产品中抽离、整理出的一套**可复用精读方法**。网页和本地版提供“导入文章 → 生成内容 → 阅读 → 练习 → 笔记”的学习流程；Skill 专注于这条流程中最核心的判断：**文章该怎样读，哪些内容值得解释，以及针对不同水平应该讲多深。**
+
+> The goal is not maximum explanation. The goal is maximum learning value.
+
+它不追求逐句翻译或平均覆盖全文。面对完整文章，它先理解整体，再选择真正影响理解、容易误读或具有迁移价值的地方；如果你只给出几句话，它就直接分析这些句子，不编造文章脉络。
+
+#### 它能做什么？
+
+- **CEFR A1–C2 深度适配**：按学习者水平调整分析重点、信息密度和解释深度，而不是把同一答案简单拉长或缩短。
+- **选择性精读**：从全文筛选高学习价值的句子，而不是机械地逐句讲解。
+- **先看整体，再看局部**：有完整文章时，先识别主题、段落作用、论证、转折和作者立场，再进入重点句。
+- **Sentence Clinic**：只分析用户指定的句子，不强制运行完整文章流程。
+- **按请求切换重点**：可以做快速阅读、论证分析、语境词汇，或聚焦值得用于自己写作的表达。
+- **语境与迁移**：解释词句在这里为什么这样写，并判断哪些表达真的值得迁移；没有价值的内容不硬提取。
+- **忠于原文**：保留程度、范围和不确定性，不把 `may` 解释成 `will`，也不把 `some` 扩大成 `all`。
+
+这些是**按需选择的分析能力**，不是每次必须填满的栏目。v0.1 完整调试的原文语言模块为 **English**，支持中文或英文讲解；A1 和 A2 目前共用一组深度配置。德语、法语、意大利语和西班牙语等语言只预留扩展接口，尚未完成相应模块的教学质量验证。
+
+核心方法、CEFR 深度控制、请求路由与英语语言规则分别维护。你可以把 Skill 理解为 CloseRead 的 **reasoning layer**：网页与本地应用负责学习界面和使用流程，Skill 负责定义“什么值得讲、讲多深、怎样讲”。它不自带网页、文章库、学习计划或本地 API 密钥管理。
+
+#### 怎样安装？
+
+把 [CloseRead 仓库链接](https://github.com/yiliabuilds/closeread)发给你的 AI，并告诉它：
+
+> 请安装这个仓库中的 CloseRead Agent Skill。安装的是 `skills/close-reading/` 整个文件夹；完成后请确认 Skill 已被识别、可以调用，不要只阅读 `SKILL.md` 就说安装好了。
+
+这一步是**安装**。安装后，再把自己想学的文章或句子发给 AI；无需在 CloseRead 网页里填写本地版的 DeepSeek API 密钥。
+
+#### 安装后，怎样提出精读要求？
+
+**不需要套固定表格。**从你这次想解决的问题说起，再附上文章或句子即可。例如：“我想看懂作者如何论证”“这三个长句卡住了我”“我只有十分钟，帮我抓重点”。你也可以告诉它自己的英语水平、希望用中文还是英文讲解，以及**不想要什么**，比如“不逐句翻译”“不要生词表”。
+
+`target_language`、`cefr_level`、`explanation_language` 和 `support_language` 是可以明确填写的参数，**不是每次必填的表单**。当前完整语言模块是 English；`support_language: none` 是 v0.1 的默认设定。水平不确定时可以先不写，读完再说“太基础了，请讲深一点”或“请讲浅一点”。
+
+下面给出两种不同的请求。它们展示的是**如何说明学习目标**，不是要求你每次照抄全部参数和栏目。
+
+**示例 A：读一篇完整文章，关注论证与写作迁移**
+
+```text
+请使用 CloseRead Skill 精读下面这篇文章。
+
+target_language: English
+cefr_level: B2
+explanation_language: Chinese
+support_language: none
+
+我的目标是：
+
+- 理解文章的整体论证；
+- 看懂真正影响理解的复杂句；
+- 注意作者如何通过让步、转折和措辞表达立场；
+- 学习少量真正值得迁移到英语写作中的表达。
+
+不要逐句翻译，不要做大量生词表。请由 CloseRead 自己判断什么最值得精读。
+
+【在这里粘贴 The Problem with Being Easy to Reach 全文，或替换成自己的英语文章】
+```
+
+**示例 B：只精读指定句子，不要全文分析**
+
+```text
+请使用 CloseRead Skill，只精读下面三个句子。
+
+target_language: English
+cefr_level: B2
+explanation_language: Chinese
+support_language: none
+
+我不需要全文脉络、文章结构、生词表或完整练习。
+
+只分析这三个句子：
+
+1. 它们在表达什么；
+2. 真正影响理解的结构是什么；
+3. 最容易读错在哪里；
+4. 有真正迁移价值的表达再告诉我，没有就不要硬提取。
+
+句子：
+
+1. Once rapid response becomes normal, delay can acquire a social meaning that it did not previously carry.
+2. Ten interruptions that each require thirty seconds do not merely consume five minutes; they divide the attention surrounding those five minutes as well.
+3. A worker may be able to turn off a messaging app after 6 p.m. while still knowing that colleagues expect an answer.
+```
+
+只有句子、没有文章时，Skill 会直接处理这些句子，不会凭空生成全文脉络。想看更少内容，可以说“我只有十分钟”；想聚焦一个方面，可以说“只看论证”或“只看能用于写作的表达”。
+
+Skill 的模型调用、费用及对话数据保存由宿主 Agent 决定；它不会读取本地完整版钥匙串中的 DeepSeek 密钥。
+
+
 ## 从旧版本升级
 
 先在旧程序导出文章、笔记与计划备份，再关闭旧服务。将新版 `local` 内程序文件复制到原来的运行目录并替换同名文件，保留原目录中的 `.local-data`。继续使用同一浏览器及原来的 `http://127.0.0.1:4180` 地址。不要删除原运行目录后直接换用空目录。
@@ -86,12 +187,21 @@ python3 -m http.server 4190 --directory docs --bind 127.0.0.1
 
 ## 数据与隐私
 
-- 本地文章、批次缓存和失败诊断保存在 local/.local-data，均不应提交。
+- 源码运行版文章、批次缓存和失败诊断保存在 `local/.local-data`；DMG 安装版保存在 `~/Library/Application Support/CloseRead/data`，均不应提交。
 - 生词、笔记、阅读位置、计划保存在当前浏览器。清除缓存或换浏览器可能失去这些记录。
 - 本地版在“回收站与备份”下载完整学习备份，包含文章、回收站，以及当前浏览器的生词、笔记、阅读位置、计划和来源；不含密钥、原始 Word、未完成批次或诊断文件。导入不会覆盖已有文章或浏览器数据；已有计划整组保留，不自动合并。
 - 移入回收站不释放文章文件空间；永久删除会清除对应生成文章及关联缓存、本浏览器对应生词和笔记，不影响其他浏览器或已导出的备份。
 - 主动生成会把所选文本发送给模型服务，可能计费。不要提交敏感或无权使用的材料。
 - 在线展示版仅含固定示例与浏览器本地数据，无分析统计或付费模型请求。
+
+## 仓库结构
+
+- `docs/`：在线展示版。
+- `local/`：本地完整版源码。
+- `skills/close-reading/`：[Agent Skill](skills/close-reading/SKILL.md)。
+- `macos-package/`：Mac 启动器与安装包构建源码。
+
+DMG 是本地完整版的一种安装方式；在线展示、本地完整版、Agent Skill 三种使用形态继续保留。
 
 ## 后续方向
 
