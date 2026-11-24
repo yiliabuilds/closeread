@@ -13,7 +13,7 @@ for rel in executables:
 subprocess.run(['codesign','--verify','--deep','--strict',str(stage/'CloseRead.app')],check=True)
 (stage/'Applications').symlink_to('/Applications')
 shutil.copy(root/'macos-package/安装说明.txt',stage/'安装说明.txt')
-output=root/'CloseRead-v0.2-macOS-AppleSilicon.dmg'
+output=root/'CloseRead-v0.2.2-macOS-AppleSilicon.dmg'
 subprocess.run(['hdiutil','create','-volname','CloseRead','-srcfolder',str(stage),'-format','UDZO','-ov',str(output)],check=True)
 subprocess.run(['hdiutil','verify',str(output)],check=True)
 mount=Path(tempfile.mkdtemp(prefix='closeread-mounted-'))

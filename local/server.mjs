@@ -165,7 +165,7 @@ export function createApp({key=process.env.DEEPSEEK_API_KEY,keyStore=null,keySto
      }catch(e){
       try{await mkdir(dataDir,{recursive:true,mode:0o700});await writeFile(failedFile,JSON.stringify({id,text,language,model,createdAt:new Date().toISOString(),reason:e.message,response:result}),{mode:0o600});}
       catch{return send(res,500,{error:'生成结果格式异常，且本机备份失败。请勿重复生成，本次可能已计费。'});}
-      return send(res,422,{error:'生成结果格式不完整，原始返回已保存在本机供排查；本次可能已计费，未自动重试。'});
+      return send(res,422,{error:(e.message.startsWith('原文引用不一致')?'原文引用不一致：模型漏词、改词或调整了顺序。':e.message==='输出未完整结束'?'模型输出被截断，讲解未完整返回。':e.message==='模型没有返回有效的精读结构'?'模型返回的内容无法解析为有效格式。':'模型返回的讲解字段不完整。')+'原始返回已保存在本机；本次可能已计费，未自动重试。'});
      }
      const record={id,text,language,lesson,model,createdAt:new Date().toISOString(),usage:result.usage};
      await mkdir(dataDir,{recursive:true,mode:0o700});

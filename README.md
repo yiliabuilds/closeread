@@ -1,5 +1,7 @@
 # 精读钥匙 · CloseRead
 
+最新更新 **v0.2.2**：内置英文文案修订、原文标点核对容错和更明确的生成错误提示。Mac 安装包见 [Releases](https://github.com/yiliabuilds/closeread/releases)。
+
 **把自己的文章，变成可以逐句学习的精读材料。**
 
 读懂翻译，不等于理解一句话如何成立。CloseRead 保留原句，把词语、表达和语法放回句子里解释，再用练习和笔记留下自己的理解。

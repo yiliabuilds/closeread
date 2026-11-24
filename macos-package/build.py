@@ -19,7 +19,7 @@ const server=createApp({key,keyStore,keyStoreError,dataDir:process.env.CLOSEREAD
 server.on('error',()=>{console.error('无法启动本机服务');process.exit(1)});
 server.listen(4180,'127.0.0.1');
 ''')
-with (contents/'Info.plist').open('wb') as f:plistlib.dump({'CFBundleName':'CloseRead','CFBundleDisplayName':'精读钥匙 · CloseRead','CFBundleIdentifier':'io.github.yiliabuilds.closeread','CFBundleExecutable':'CloseRead','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.2.0','CFBundleVersion':'2','LSMinimumSystemVersion':'15.0','CFBundleIconFile':'CloseRead.icns','NSHighResolutionCapable':True},f)
+with (contents/'Info.plist').open('wb') as f:plistlib.dump({'CFBundleName':'CloseRead','CFBundleDisplayName':'精读钥匙 · CloseRead','CFBundleIdentifier':'io.github.yiliabuilds.closeread','CFBundleExecutable':'CloseRead','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.2.2','CFBundleVersion':'4','LSMinimumSystemVersion':'15.0','CFBundleIconFile':'CloseRead.icns','NSHighResolutionCapable':True},f)
 shutil.copy2(root/'macos-package/CloseRead.icns',resources/'CloseRead.icns')
 shutil.copy2(root/'macos-package/NODE-LICENSE.txt',resources/'NODE-LICENSE.txt')
 shutil.copy2(root/'LICENSE',resources/'LICENSE')

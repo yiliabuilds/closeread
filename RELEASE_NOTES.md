@@ -1,3 +1,21 @@
+# CloseRead v0.2.2：英文文案与生成容错更新
+
+- 调整内置阅读标题、Lina 与药店示例、练习提示中的英文表达，例如 Reading goals、Sentence breakdown 和 Check your understanding。
+- 原文核对允许仅空白和标点的差异，并恢复原文显示；漏词、改词或顺序变化仍会停止并提示。
+- 区分原文不一致、返回截断和格式问题，保留成功批次；不自动重试付费请求。
+- 修正阅读目录在提示信息出现时的条目选择。
+- 保留在线展示、本地应用和 Agent Skill 三种使用方式。
+
+## 安装
+
+下载 CloseRead-v0.2.2-macOS-AppleSilicon.dmg，退出旧版 CloseRead，再将应用拖入 Applications 替换。适用于 Apple Silicon Mac、macOS 15 及以上，无需另装 Node.js 或 Python。
+
+更新前可导出完整学习备份。应用仍在浏览器中使用，API 密钥存于 macOS 钥匙串。安装包使用 ad-hoc 签名，尚未进行 Apple 公证，未做全面跨设备测试。
+
+此次修改固定文案和生成处理，不批量改写已保存文章中的 AI 讲解，也不保证模型输出永不出错。
+
+---
+
 # CloseRead v0.2.0：Mac 安装版
 
 CloseRead 现在提供可直接安装的 Mac 版本：将应用拖入「应用程序」，双击即可启动本地服务，并在浏览器中打开学习界面。无需另外安装 Node.js 或 Python。

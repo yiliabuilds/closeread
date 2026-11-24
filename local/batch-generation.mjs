@@ -73,6 +73,6 @@ export async function batchStep({id,text,language,model,key,fetcher,dataDir,chun
   const diagnostic={id,at:new Date().toISOString(),batch:index,stage,kind,validationReason:stage==='validate'?e.message:undefined,httpStatus:e.httpStatus,response:result};
   let archived=true;
   try{await atomicJSON(path.join(dataDir,`${id}.batch-error-${randomUUID()}.json`),diagnostic);}catch{archived=false;}
-  return {error:`${messages[kind]}。已保存的部分会保留；未自动重试，本次请求可能已计费。${archived?'':'诊断记录也未能保存。'}请点击“继续未完成的精读”后再尝试。`,kind,id,completed:Math.min(index,chunks.length),total:chunks.length,resumable:true};
+  return {error:`${kind==='validation'&&e.message.startsWith('原文引用不一致')?'本部分原文引用不一致：模型漏词、改词或调整了顺序':messages[kind]}。已保存的部分会保留；未自动重试，本次请求可能已计费。${archived?'':'诊断记录也未能保存。'}请点击“继续未完成的精读”后再尝试。`,kind,id,completed:Math.min(index,chunks.length),total:chunks.length,resumable:true};
  }
 }

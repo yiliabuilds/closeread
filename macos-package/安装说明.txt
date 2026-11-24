@@ -1,4 +1,4 @@
-精读钥匙 · CloseRead v0.2
+精读钥匙 · CloseRead v0.2.2
 适用于 Apple Silicon（M 系列）Mac，macOS 15 或更新版本。
 
 1. 将 CloseRead 拖入 Applications（应用程序）。
